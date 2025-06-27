@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from config_settings import *
 
-from routes import ui
+from back_end.routes import ui_routes, debug_routes
 
 
 import mlflow
@@ -25,7 +25,8 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
 
-app.include_router(ui.router)
+app.include_router(ui_routes.router)
+app.include_router(debug_routes.router)
 
 if __name__ == "__main__":
     import uvicorn

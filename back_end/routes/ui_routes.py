@@ -47,7 +47,7 @@ def root(request: Request):
 def root(request: Request):
     return templates.TemplateResponse("index.html", {
         "request": request,
-        "chat_endpoint": "/chat_old"
+        "chat_endpoint": "/echo"
     })
 
 
