@@ -86,9 +86,16 @@ async function sendMessageToBackendStream(message, chatHistory) {
       replyMsg.querySelectorAll("pre code:not(.hljs)").forEach((block) => {
         hljs.highlightElement(block);
       });
-
+      renderMathInElement(replyMsg, {
+          delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "$", right: "$", display: false },
+          ],
+      });
       scrollToBottom(scrollContainer);
     }
+
+
   } catch (err) {
     console.error("Streaming failed", err);
   }

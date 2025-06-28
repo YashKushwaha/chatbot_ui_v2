@@ -15,7 +15,6 @@ from config_settings import *
 
 from back_end.routes import ui_routes, debug_routes
 
-
 import mlflow
 
 EMBEDDING_SERVER_PORT = 8001
@@ -81,9 +80,6 @@ llm = Ollama(
 
 agent = FunctionAgent(llm=llm, tools=[weather_tool, calc_tool, run_python_code_tool])
 
-
-
-
 async def stream_agent_response(agent, prompt: str):
     handler = agent.run(user_msg=prompt)
 
@@ -132,8 +128,6 @@ async def stream_react_agent(agent, prompt: str):
 async def chat_bot(message: str = Form(...), image: UploadFile = File(None)):
     response_stream = stream_agent_response(agent, message)
     return StreamingResponse(response_stream, media_type="text/plain")
-
-
 
 if __name__ == "__main__":
     import uvicorn
