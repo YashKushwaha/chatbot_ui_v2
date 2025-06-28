@@ -26,7 +26,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
 
 app.include_router(ui_routes.router)
-app.include_router(debug_routes.router)
+app.include_router(debug_routes.router) 
 
 if __name__ == "__main__":
     import uvicorn
