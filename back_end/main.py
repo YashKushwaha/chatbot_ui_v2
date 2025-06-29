@@ -12,7 +12,8 @@ from config_settings import *
 
 from back_end.routes import ui_routes, debug_routes, api_routes
 from src.agent_list import get_function_agent
-from src.response_utils import stream_agent_response
+from src.react_agent import get_react_agent
+
 import mlflow
 
 log_folder = os.path.join(PROJECT_ROOT, 'mlflow_logs')
@@ -30,21 +31,26 @@ app.include_router(ui_routes.router)
 app.include_router(debug_routes.router) 
 app.include_router(api_routes.router) 
 
-model = "qwen3:14b"
-context_window = 1000
+def get_ollama_llm():
+    model = "qwen3:14b"
+    context_window = 1000
 
-llm = Ollama(
-    model=model,
-    request_timeout=120.0,
-    thinking=True,
-    context_window=context_window,
-)
+    llm = Ollama(
+        model=model,
+        request_timeout=120.0,
+        thinking=True,
+        context_window=context_window,
+    )
+    return llm
 
+llm = get_ollama_llm()
 # Create ReAct Agent with tool
-agent = get_function_agent(llm=llm)
+#agent = get_function_agent(llm=llm)
+
+agent = get_react_agent(llm=llm)
+
 
 app.state.agent = agent
-
 
 if __name__ == "__main__":
     import uvicorn

@@ -9,7 +9,7 @@ async def stream_agent_response(agent, prompt: str):
             delta = event.delta
             if delta:
                 yield delta.encode("utf-8")
-                await asyncio.sleep(0.2)  # Yield control back to event loop
+                await asyncio.sleep(0.1)  # Yield control back to event loop
 
 async def stream_agent_response_old(agent, prompt: str):
     """Yields streamed response text from the ReActAgent."""
