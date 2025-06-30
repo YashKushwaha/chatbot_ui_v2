@@ -5,3 +5,5 @@ mlflow_logs/
 **/mlruns/**
 **/lib/**
 uploads/
+
+**/__pycache__/**

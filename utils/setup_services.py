@@ -5,14 +5,15 @@ import os
 
 CHROMA_DB_PORT = "8010"
 EMBEDDING_SERVER_PORT = "8020"
-
 MONGO_DB_PORT = "27017"
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 db_location =  os.path.join(PROJECT_ROOT, 'local_only', 'chroma_db')
-mongo_data_location = os.path.join(PROJECT_ROOT, 'local_only', 'mongo_db')
-    # Launch MongoDB Docker container
+#mongo_data_location = os.path.join(PROJECT_ROOT, 'local_only', 'mongo_database')
+#os.makedirs(mongo_data_location, exist_ok=True)
+
+#print(mongo_data_location)
 
 def get_container_settings(container_name):
     """Retrieve container settings as JSON"""
@@ -30,10 +31,10 @@ def get_container_settings(container_name):
 def get_mongo_db_commands():
     mongo_cmd = [
         "docker", "run", "-d",
-        "--name", "mongodb",
+        "--name", "mongodb-container",
         "-p", f"{MONGO_DB_PORT}:27017",
         "-v", f"{mongo_data_location}:/data/db",
-        "mongo"
+        "mongodb/mongodb-community-server:latest"
     ]
     return mongo_cmd
 
@@ -94,8 +95,13 @@ def start_mongo():
         "--name", "mongodb",
         "-p", f"{MONGO_DB_PORT}:27017",
         "-v", f"{mongo_data_location}:/data/db",
-        "mongo"
+        "mongodb/mongodb-community-server:latest"
     ])
+
+"""
+Note: I tried to start the mongo db server from within the WSL but it didn't work
+So better to start the container from Docker Desktop itself
+"""
 
 if __name__ == '__main__':
 
@@ -103,8 +109,8 @@ if __name__ == '__main__':
     embed_proc = subprocess.Popen(get_embedding_server_commands())    
     chroma_proc = subprocess.Popen(get_chroma_db_commands())
     # Check for existing MongoDB container
-    container_info = container_exists("mongodb")
-
+    """
+    container_info = container_exists("mongodb")    
     mongo_proc = subprocess.run(get_mongo_db_commands(), capture_output=True, text=True)
 
     settings = get_container_settings("mongodb")
@@ -120,7 +126,7 @@ if __name__ == '__main__':
     else:
         print("Creating new MongoDB container...")
         start_mongo()
-
+    """
 
     # Keep main script alive
     try:
