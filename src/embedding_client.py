@@ -31,3 +31,4 @@ class RemoteEmbedding(BaseEmbedding):
         response = requests.post(f"{self._server_url}/batch_embed", json={"texts": texts})
         response.raise_for_status()
         return response.json()["embeddings"]
+    
