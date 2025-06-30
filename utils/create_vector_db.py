@@ -45,7 +45,7 @@ def insert_to_vec_db(collection, contexts, embeddings, metadatas, ids):
     )
 
 
-def process_batches(cursor, embed_model, vec_db_collection, batch_size=BATCH_SIZE):
+def process_batches(cursor, embed_model, vec_db_collection, batch_size=64):
     """Full processing loop: fetch, embed, insert in batches."""
     total_inserted = 0
 
@@ -65,7 +65,7 @@ def process_batches(cursor, embed_model, vec_db_collection, batch_size=BATCH_SIZ
     print(f"\nFinished inserting {total_inserted} records.")
 
 
-
+BATCH_SIZE = 128
 EMBEDDING_SERVER_PORT = 8020
 embed_model = RemoteEmbedding(f"http://localhost:{EMBEDDING_SERVER_PORT}")
 
@@ -73,29 +73,12 @@ vec_db_client = get_chroma_db_client()
 
 mongo_db_client = MongoClient("mongodb://localhost:27017/")
 db = mongo_db_client["agent_evaluation_db"]
-
 context_list_collection = db["context_list"]
 
 cursor = context_list_collection.find({})
 vec_db_collection = vec_db_client.get_or_create_collection(name="context_vectors")
 
-
-
-
-
-counter = 1
-for doc in cursor:
-    context_hash = doc['context_hash']
-    context = doc['context']
-    title = doc['title']
-    embedding = embed_model._get_text_embedding(context)
-    metadata = dict(context_hash=context_hash, title=title)
-    record = dict(documents = [context], embeddings = [embedding],
-                  metadatas = [metadata], ids = [str(doc['_id'])])
-    
-    vec_db_collection.add(**record)
-
-    if counter % 100 == 0:
-        print(counter, en='\t')
-    counter+=1
-print()
+process_batches(cursor = context_list_collection, 
+                embed_model = embed_model,
+                vec_db_collection=vec_db_collection,
+                batch_size=BATCH_SIZE)
