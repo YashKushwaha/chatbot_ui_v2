@@ -25,7 +25,11 @@ def root(request: Request):
         "request": request,
     })
 
-
+@router.get("/vecdb", response_class=HTMLResponse)
+def root(request: Request):
+    return templates.TemplateResponse("vec_db.html", {
+        "request": request,
+    })
 
 @router.get("/chat_history", response_class=HTMLResponse)
 def chat_history(request: Request):
