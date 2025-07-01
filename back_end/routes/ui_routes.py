@@ -19,6 +19,13 @@ def root(request: Request):
         "chat_endpoint": "/chat_bot"
     })
 
+@router.get("/mongo", response_class=HTMLResponse)
+def root(request: Request):
+    return templates.TemplateResponse("mongo_db.html", {
+        "request": request,
+    })
+
+
 
 @router.get("/chat_history", response_class=HTMLResponse)
 def chat_history(request: Request):
