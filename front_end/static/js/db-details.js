@@ -45,7 +45,6 @@ function createButton(label, cssClass, datasetProps = {}) {
 
 function showDBList(container, databases) {
     container.innerHTML = ""; // Clear existing list
-
     databases.forEach(dbName => {
         const dbButton = createButton(dbName, 'db-button', { dbName });
         container.appendChild(dbButton);
@@ -53,15 +52,13 @@ function showDBList(container, databases) {
 }
 
 function showCollections(container, dbName, collections) {
-    /*container.innerHTML = `<h3>Collections in ${dbName}:</h3>`;
-    */
+    container.innerHTML = "";
+    
     collections.forEach(colName => {
         const colButton = createButton(colName, 'collection-button', { dbName, colName });
         container.appendChild(colButton);
     });
 }
-
-
 // ====================== EVENT HANDLERS ======================
 
 function handleDBClick(e) {
@@ -112,11 +109,6 @@ function handleCollectionClick(e) {
 
             // Set as textContent (so it won't double-escape) and rely on highlight.js
             code.textContent = formattedJson;
-            /*
-            pre.textContent = JSON.stringify(record, null, 2);
-            pre.style.whiteSpace = 'pre-wrap';
-            pre.style.wordBreak = 'break-word';
-            */
             pre.appendChild(code);
             recordContentDiv.appendChild(pre);
             hljs.highlightElement(code);  // Apply highlighting
@@ -140,7 +132,6 @@ function toggleActiveState(target, selector) {
     allButtons.forEach(btn => btn.classList.remove('active'));
     target.classList.add('active');
 }
-
 
 // ====================== INITIALIZATION ======================
 
