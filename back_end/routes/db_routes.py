@@ -27,3 +27,14 @@ def list_collections(request: Request, db, collection):
     client = request.app.state.mongo_db_client
     num_records = client[db][collection].count_documents({})
     return JSONResponse({'num_records': num_records})
+
+@router.get("/mongo/first-n-records-in-collection", response_class=JSONResponse)
+def list_collections(request: Request, db, collection):
+    client = request.app.state.mongo_db_client
+    records = list(client[db][collection].find().limit(2))
+    for doc in records:
+        if '_id' in doc:
+            doc['_id'] = str(doc['_id'])
+
+    json_result = json.dumps(records)
+    return JSONResponse({"records": records if isinstance(records, list) else []})
