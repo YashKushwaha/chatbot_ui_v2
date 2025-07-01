@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from llama_index.core import Settings
 
 import os
 import asyncio
@@ -12,6 +13,7 @@ from back_end.routes import ui_routes, debug_routes, api_routes, db_routes, vec_
 from src.agent_list import get_function_agent
 from src.react_agent import get_react_agent
 from src.components import get_ollama_llm, get_mongo_db_client, get_chroma_db_client
+from src.embedding_client import RemoteEmbedding
 
 import mlflow
 
@@ -34,13 +36,18 @@ app.include_router(vec_db_routes.router)
 
 
 llm = get_ollama_llm()
+embed_model = RemoteEmbedding(f"http://localhost:8020")
+
+Settings.llm = llm
+Settings.embed_model = embed_model
+
 mongo_db_client = get_mongo_db_client()
 vec_db_client = get_chroma_db_client()
 # Create ReAct Agent with tool
 #agent = get_function_agent(llm=llm)
 
-#agent = get_react_agent(llm=llm)
-agent = None
+agent = get_react_agent(Settings)
+#agent = None
 app.state.agent = agent
 app.state.mongo_db_client = mongo_db_client
 app.state.vec_db_client = vec_db_client
