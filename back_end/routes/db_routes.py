@@ -5,19 +5,25 @@ import json
 
 router = APIRouter()
 
-@router.get("/mongo_db_stats", response_class=JSONResponse)
+@router.get("/mongo/list-databases", response_class=JSONResponse)
 def db_stats(request: Request):
     system_dbs = {"admin", "config", "local"}
     client = request.app.state.mongo_db_client
     user_db_list = [i for i in client.list_database_names() if i not in system_dbs]
     return JSONResponse({'databases': user_db_list})
 
-@router.get("/mongo_db_stats/list_collections", response_class=JSONResponse)
-def list_collections(request: Request, database_name):
+@router.get("/mongo/list-collections", response_class=JSONResponse)
+def list_collections(request: Request, db):
     client = request.app.state.mongo_db_client
     system_dbs = {"admin", "config", "local"}
-    if database_name in [i for i in client.list_database_names() if i not in system_dbs]:
-        collections = client[database_name].list_collection_names()
+    if db in [i for i in client.list_database_names() if i not in system_dbs]:
+        collections = client[db].list_collection_names()
     else:
         collections = None
     return JSONResponse({'collections': collections})
+
+@router.get("/mongo/num-records-in-collection", response_class=JSONResponse)
+def list_collections(request: Request, db, collection):
+    client = request.app.state.mongo_db_client
+    num_records = client[db][collection].count_documents({})
+    return JSONResponse({'num_records': num_records})
