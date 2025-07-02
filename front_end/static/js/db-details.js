@@ -28,6 +28,13 @@ async function fetchFirstNRecords(db, collection) {
     return data.records || [];
 }
 
+async function fetchValueCounts(db, collection, key) {
+    const response = await fetch(`/mongo/show-value-counts?db=${encodeURIComponent(db)}&collection=${encodeURIComponent(collection)}&key=${encodeURIComponent(key)}`);
+    if (!response.ok) throw new Error('Failed to fetch number of records');
+    const data = await response.json();
+    
+    return data.counts || [];
+}
 
 // ====================== UI RENDER FUNCTIONS ======================
 
@@ -83,7 +90,7 @@ function handleCollectionClick(e) {
 
     const recordCountDiv = document.getElementById('record-count');
     const recordContentDiv = document.getElementById('record-content');
-
+    const recordValueCountsDiv = document.getElementById('record-value-counts');
     // Optional: Indicate loading state
     recordCountDiv.innerHTML = `<p>Loading count...</p>`;
     recordContentDiv.innerHTML = `<p>Loading records...</p>`;
@@ -96,6 +103,19 @@ function handleCollectionClick(e) {
             console.error(err);
             recordCountDiv.innerHTML = `<p style="color:red;">Failed to fetch record count</p>`;
         });
+    fetchValueCounts(dbName, colName, "title")
+        .then(counts => {
+            counts.forEach(key_count => {
+                const to_show = key_count.join(' ')
+                const div = document.createElement('div');
+                div.classList.add('db-button')
+                div.innerHTML = `${to_show}`;
+                recordValueCountsDiv.appendChild(div);
+            })
+        
+        })
+
+
 
     fetchFirstNRecords(dbName, colName)
         .then(records => {

@@ -3,6 +3,11 @@
 This is sequel to my [previous project](https://github.com/YashKushwaha/chatbot_ui) where I used llama index framework to build chat bots. In this project, I have implemented the Agent frameworks available in llama-index. 
 
 I have implemented `FunctionAgent` and `ReActAgent` till now.
+TODO:
+- Planner Agents - `StructuredPlannerAgent` class
+- Parallel Agents - `ParallelAgentRunner` class
+- Custom Agents - `QueryPipelineAgentWorker`, `CustomSimpleAgentWorker` etc
+- Multimodal ReAct - `MultimodalReActAgentWorker` class
 
 ## LLM Used
 - For `ReActAgent`, models with thinking capability are required

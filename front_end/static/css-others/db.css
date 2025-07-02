@@ -27,8 +27,22 @@
     width: 100%;
 }
 
+.record-value-counts {
+    padding: 8px 12px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    background-color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    border-radius: 4px;
+    width: 100%;
+    overflow-y: auto;
+    min-height: 0%;
+    max-height: 100%;
+}
+
 .db-button:hover {
-    background-color: #ddd;
+    background-color: #007BFF;
 }
 
 .db-button.active {
