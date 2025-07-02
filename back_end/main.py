@@ -7,8 +7,8 @@ import os
 import asyncio
 
 from pathlib import Path
-from config_settings import *
 
+from back_end.config_settings import *
 from back_end.routes import ui_routes, debug_routes, api_routes, db_routes, vec_db_routes
 from src.agent_list import get_function_agent
 from src.react_agent import get_react_agent
