@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 import json
+from pydantic import BaseModel
 from pymongo.collection import Collection
 #from back_end.config_settings import templates
 
@@ -70,7 +71,7 @@ def list_collections(request: Request, db, collection):
     for doc in records:
         if '_id' in doc:
             doc['_id'] = str(doc['_id'])
-    json_result = json.dumps(records)
+    records = json.dumps(records)
     return JSONResponse({"records": records if isinstance(records, list) else []})
 
 @router.get("/mongo/show-value-counts", response_class=JSONResponse)
@@ -79,3 +80,24 @@ def list_collections(request: Request, db, collection, key):
     collection = client[db][collection]
     counts = mongo_value_counts(collection, key)
     return JSONResponse({"counts": counts if isinstance(counts, list) else []})
+
+class QueryRequest(BaseModel):
+    db: str
+    collection: str
+    filter_criteria: dict
+
+@router.post("/mongo/query-records", response_class=JSONResponse)
+def query_records(request: Request, message: QueryRequest):
+    client = request.app.state.mongo_db_client
+
+    collection = client[message.db][message.collection]
+
+    records = collection.find(message.filter_criteria).limit(5)
+    
+    record_list = []
+    for doc in records:
+        if '_id' in doc:
+            doc['_id'] = str(doc['_id'])  # Convert ObjectId to string
+        record_list.append(doc)
+
+    return JSONResponse({"records": record_list})

@@ -36,6 +36,26 @@ async function fetchValueCounts(db, collection, key) {
     return data.counts || [];
 }
 
+async function queryRecords(db, collection, filter_criteria) {
+    const response = await fetch(`/mongo/query-records`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            db: db,
+            collection: collection,
+            filter_criteria: filter_criteria
+        })
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch records');
+
+    const data = await response.json();
+    return data.records || [];
+}
+
+
 // ====================== UI RENDER FUNCTIONS ======================
 
 function createButton(label, cssClass, datasetProps = {}) {
@@ -66,6 +86,29 @@ function showCollections(container, dbName, collections) {
         container.appendChild(colButton);
     });
 }
+
+function display_records(recordContentDiv, records){
+        recordContentDiv.innerHTML = '';
+        records.forEach(record => {
+            const pre = document.createElement('pre');
+            const code = document.createElement('code');
+            code.classList.add('json');  // Apply JSON highlighting
+            // Generate pretty JSON without extra escaping for quotes
+            const formattedJson = JSON.stringify(record, null, 2);
+
+            // Set as textContent (so it won't double-escape) and rely on highlight.js
+            code.textContent = formattedJson;
+            pre.appendChild(code);
+            recordContentDiv.appendChild(pre);
+            hljs.highlightElement(code);  // Apply highlighting
+            });
+
+        if (records.length === 0) {
+            recordContentDiv.textContent = 'No records found.';
+            }
+        }
+
+
 // ====================== EVENT HANDLERS ======================
 
 function handleDBClick(e) {
@@ -73,6 +116,8 @@ function handleDBClick(e) {
 
     const dbName = e.target.dataset.dbName;
     const collectionContainer = document.getElementById('collections-list');
+
+    window.selectionState.dbName = dbName
 
     fetchCollections(dbName)
         .then(collections => {
@@ -82,11 +127,14 @@ function handleDBClick(e) {
 
     toggleActiveState(e.target, '.db-button');
 }
+
 function handleCollectionClick(e) {
     if (!e.target.classList.contains('collection-button')) return;
 
     const dbName = e.target.dataset.dbName;
     const colName = e.target.dataset.colName;
+
+    window.selectionState.colName = colName
 
     const recordCountDiv = document.getElementById('record-count');
     const recordContentDiv = document.getElementById('record-content');
@@ -108,37 +156,16 @@ function handleCollectionClick(e) {
             counts.forEach(key_count => {
                 const to_show = key_count.join(' ')
                 const div = document.createElement('div');
-                div.classList.add('db-button')
+                div.dataset.key = key_count[0]
+                div.dataset.num_records = key_count[1]
+                div.classList.add('db-button');
                 div.innerHTML = `${to_show}`;
                 recordValueCountsDiv.appendChild(div);
-            })
-        
-        })
-
-
-
-    fetchFirstNRecords(dbName, colName)
-        .then(records => {
-        recordContentDiv.innerHTML = '';
-        records.forEach(record => {
-            const pre = document.createElement('pre');
-            const code = document.createElement('code');
-            code.classList.add('json');  // Apply JSON highlighting
-            // Generate pretty JSON without extra escaping for quotes
-            const formattedJson = JSON.stringify(record, null, 2);
-
-            // Set as textContent (so it won't double-escape) and rely on highlight.js
-            code.textContent = formattedJson;
-            pre.appendChild(code);
-            recordContentDiv.appendChild(pre);
-            hljs.highlightElement(code);  // Apply highlighting
+                }) ;
         });
 
-        if (records.length === 0) {
-            recordContentDiv.textContent = 'No records found.';
-        }
-
-        })
+    fetchFirstNRecords(dbName, colName)
+        .then(records => display_records(recordContentDiv, records))
         .catch(err => {
             console.error(err);
             recordContentDiv.innerHTML = `<p style="color:red;">Failed to fetch records</p>`;
@@ -153,12 +180,29 @@ function toggleActiveState(target, selector) {
     target.classList.add('active');
 }
 
+function handleValueCountClick(e){
+    if (e.target.classList.contains('db-button')){
+        const recordValueCountsDiv = document.getElementById('record-content');
+        const key = e.target.dataset.key;
+        window.selectionState.field = key
+        queryRecords(db = window.selectionState.dbName, collection = window.selectionState.colName,
+            filter_criteria = {"title": key})
+            .then(records => display_records(recordValueCountsDiv, records))
+    }
+} 
 // ====================== INITIALIZATION ======================
+
+window.selectionState = {
+    dbName: null,
+    colName: null,
+    field: null,
+    value: null
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     const dbListContainer = document.getElementById('db-list');
     const collectionListContainer = document.getElementById('collections-list');
-
+    const recordValueCountsDiv = document.getElementById('record-value-counts');
     // Fetch and show databases
     fetchDatabases()
         .then(databases => showDBList(dbListContainer, databases))
@@ -167,4 +211,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach event listeners
     dbListContainer.addEventListener('click', handleDBClick);
     collectionListContainer.addEventListener('click', handleCollectionClick);
+    recordValueCountsDiv.addEventListener('click', handleValueCountClick);
 });
