@@ -16,6 +16,7 @@ from src.agent_list import get_function_agent
 from src.react_agent import get_react_agent
 from src.components import get_ollama_llm, get_mongo_db_client, get_chroma_db_client
 from src.embedding_client import RemoteEmbedding
+from src.mlflow_utils import MLflowLogs
 
 import mlflow
 
@@ -48,12 +49,14 @@ vec_db_client = get_chroma_db_client()
 
 agent = get_react_agent(Settings)
 #agent = None
+
+mlflow_handler = MLflowLogs(MLFLOW_LOGS_FOLDER)
 app.state.agent = agent
 app.state.mongo_db_client = mongo_db_client
 app.state.vec_db_client = vec_db_client
-app.state.mlflow_logs_dir = MLFLOW_LOGS_FOLDER
+#app.state.mlflow_logs_dir = MLFLOW_LOGS_FOLDER
 app.state.experiment_name = EXPERIMENT_NAME
-
+app.state.mlflow_handler = mlflow_handler
 
 if __name__ == "__main__":
     import uvicorn

@@ -7,11 +7,11 @@ async function fetchExperiments() {
     return data.experiments || [];
 }
 
-async function fetchCollections(dbName) {
-    const response = await fetch(`/mlflow/list-traces?db=${encodeURIComponent(dbName)}`);
+async function fetchTraces(experiment_id) {
+    const response = await fetch(`/mlflow/list-traces?experiment_id=${encodeURIComponent(experiment_id)}`);
     if (!response.ok) throw new Error('Failed to fetch collections');
     const data = await response.json();
-    return data.collections || [];
+    return data.traces || [];
 }
 
 async function fetchNumRecords(db, collection) {
@@ -73,7 +73,7 @@ function createButton(label, cssClass, datasetProps = {}) {
 function showDBList(container, databases) {
     container.innerHTML = ""; // Clear existing list
     databases.forEach(dbName => {
-        const dbButton = createButton(dbName, 'list-item', { dbName });
+        const dbButton = createButton(dbName.name, 'list-item', { ...dbName });
         container.appendChild(dbButton);
     });
 }
@@ -82,7 +82,7 @@ function showCollections(container, dbName, collections) {
     container.innerHTML = "";
     
     collections.forEach(colName => {
-        const colButton = createButton(colName, 'list-item', { dbName, colName });
+         const colButton = createButton(colName.start_time_str, 'list-item', { ...colName });
         container.appendChild(colButton);
     });
 }
@@ -114,15 +114,15 @@ function display_records(recordContentDiv, records){
 function handleDBClick(e) {
     if (!e.target.classList.contains('list-item')) return;
 
-    const dbName = e.target.dataset.dbName;
+    const dbName = e.target.dataset.experiment_id;
     const collectionContainer = document.getElementById('collections-list');
 
     window.selectionState.dbName = dbName
 
-    fetchCollections(dbName)
-        .then(collections => {
-            showCollections(collectionContainer, dbName, collections);
-        })
+    fetchTraces(dbName)
+        .then(traces => {
+                showCollections(collectionContainer, dbName, traces);
+            })
         .catch(err => console.error(err));
 
     toggleActiveState(e.target, '.list-item');
