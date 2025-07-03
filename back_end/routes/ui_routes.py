@@ -31,6 +31,13 @@ def root(request: Request):
         "request": request,
     })
 
+@router.get("/mlflow", response_class=HTMLResponse)
+def root(request: Request):
+    return templates.TemplateResponse("mlflow.html", {
+        "request": request,
+    })
+
+
 @router.get("/chat_history", response_class=HTMLResponse)
 def chat_history(request: Request):
     chat_history = request.app.state.chat_engine.chat_history

@@ -11,7 +11,7 @@ from pathlib import Path
 from back_end.config_settings import *
 from constants import EXPERIMENT_NAME, MLFLOW_LOGS_FOLDER
 
-from back_end.routes import ui_routes, debug_routes, api_routes, db_routes, vec_db_routes
+from back_end.routes import ui_routes, debug_routes, api_routes, db_routes, vec_db_routes, mlflow_routes
 from src.agent_list import get_function_agent
 from src.react_agent import get_react_agent
 from src.components import get_ollama_llm, get_mongo_db_client, get_chroma_db_client
@@ -33,7 +33,7 @@ app.include_router(debug_routes.router)
 app.include_router(api_routes.router) 
 app.include_router(db_routes.router) 
 app.include_router(vec_db_routes.router) 
-
+app.include_router(mlflow_routes.router) 
 
 llm = get_ollama_llm()
 embed_model = RemoteEmbedding(f"http://localhost:8020")
@@ -51,6 +51,10 @@ agent = get_react_agent(Settings)
 app.state.agent = agent
 app.state.mongo_db_client = mongo_db_client
 app.state.vec_db_client = vec_db_client
+app.state.mlflow_logs_dir = MLFLOW_LOGS_FOLDER
+app.state.experiment_name = EXPERIMENT_NAME
+
+
 if __name__ == "__main__":
     import uvicorn
     app_path = Path(__file__).resolve().with_suffix('').name  # gets filename without .py

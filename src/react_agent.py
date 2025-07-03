@@ -20,7 +20,14 @@ def get_react_agent(Settings):
     query_engine = index.as_query_engine(streaming=False)
 
     query_engine_tool = QueryEngineTool.from_defaults(
-        query_engine, name="vector_database_search", description="This tool allows search to vector database"
+        query_engine,
+        name="vector_database_search",
+        description=(
+            "Use this tool to answer any questions that require external factual knowledge, "
+            "detailed technical information, or context that may not be part of your internal knowledge. "
+            "also try to check this tool first before checking your internal knowledge"
+            "Always prefer this tool when uncertain."
+        )
     )
     agent = ReActAgent(tools = [query_engine_tool], llm=Settings.llm)
 
