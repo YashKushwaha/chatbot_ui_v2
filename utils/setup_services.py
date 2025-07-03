@@ -36,7 +36,7 @@ def get_mlflow_server_commands():
         "mlflow",
         "server",
         "--backend-store-uri", "./mlflow_logs",
-        "--host", "0.0.0.0",
+        "--host", "localhost",
         "--port", MLFLOW_PORT
     ]
     return commands

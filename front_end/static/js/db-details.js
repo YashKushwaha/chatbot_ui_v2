@@ -73,7 +73,7 @@ function createButton(label, cssClass, datasetProps = {}) {
 function showDBList(container, databases) {
     container.innerHTML = ""; // Clear existing list
     databases.forEach(dbName => {
-        const dbButton = createButton(dbName, 'db-button', { dbName });
+        const dbButton = createButton(dbName, 'list-item', { dbName });
         container.appendChild(dbButton);
     });
 }
@@ -82,7 +82,7 @@ function showCollections(container, dbName, collections) {
     container.innerHTML = "";
     
     collections.forEach(colName => {
-        const colButton = createButton(colName, 'collection-button', { dbName, colName });
+        const colButton = createButton(colName, 'list-item', { dbName, colName });
         container.appendChild(colButton);
     });
 }
@@ -112,7 +112,7 @@ function display_records(recordContentDiv, records){
 // ====================== EVENT HANDLERS ======================
 
 function handleDBClick(e) {
-    if (!e.target.classList.contains('db-button')) return;
+    if (!e.target.classList.contains('list-item')) return;
 
     const dbName = e.target.dataset.dbName;
     const collectionContainer = document.getElementById('collections-list');
@@ -125,11 +125,11 @@ function handleDBClick(e) {
         })
         .catch(err => console.error(err));
 
-    toggleActiveState(e.target, '.db-button');
+    toggleActiveState(e.target, '.list-item');
 }
 
 function handleCollectionClick(e) {
-    if (!e.target.classList.contains('collection-button')) return;
+    if (!e.target.classList.contains('list-item')) return;
 
     const dbName = e.target.dataset.dbName;
     const colName = e.target.dataset.colName;
@@ -151,14 +151,16 @@ function handleCollectionClick(e) {
             console.error(err);
             recordCountDiv.innerHTML = `<p style="color:red;">Failed to fetch record count</p>`;
         });
+
     fetchValueCounts(dbName, colName, "title")
         .then(counts => {
+            recordValueCountsDiv.innerHTML = "";
             counts.forEach(key_count => {
                 const to_show = key_count.join(' ')
                 const div = document.createElement('div');
                 div.dataset.key = key_count[0]
                 div.dataset.num_records = key_count[1]
-                div.classList.add('db-button');
+                div.classList.add('list-item');
                 div.innerHTML = `${to_show}`;
                 recordValueCountsDiv.appendChild(div);
                 }) ;
@@ -181,7 +183,7 @@ function toggleActiveState(target, selector) {
 }
 
 function handleValueCountClick(e){
-    if (e.target.classList.contains('db-button')){
+    if (e.target.classList.contains('list-item')){
         const recordValueCountsDiv = document.getElementById('record-content');
         const key = e.target.dataset.key;
         window.selectionState.field = key

@@ -9,6 +9,8 @@ import asyncio
 from pathlib import Path
 
 from back_end.config_settings import *
+from constants import EXPERIMENT_NAME, MLFLOW_LOGS_FOLDER
+
 from back_end.routes import ui_routes, debug_routes, api_routes, db_routes, vec_db_routes
 from src.agent_list import get_function_agent
 from src.react_agent import get_react_agent
@@ -17,10 +19,8 @@ from src.embedding_client import RemoteEmbedding
 
 import mlflow
 
-log_folder = os.path.join(PROJECT_ROOT, 'mlflow_logs')
-os.makedirs(log_folder, exist_ok=True)
-mlflow.set_tracking_uri(log_folder)
-mlflow.set_experiment("agent testing")
+mlflow.set_tracking_uri(MLFLOW_LOGS_FOLDER)
+mlflow.set_experiment(EXPERIMENT_NAME)
 mlflow.llama_index.autolog()  # Enable mlflow tracing
 
 app = FastAPI()
