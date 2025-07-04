@@ -2,6 +2,10 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from llama_index.core import Settings
+from llama_index.utils.workflow import (
+    draw_all_possible_flows,
+    draw_most_recent_execution,
+)
 
 import os
 import asyncio
@@ -46,8 +50,8 @@ mongo_db_client = get_mongo_db_client()
 vec_db_client = get_chroma_db_client()
 # Create ReAct Agent with tool
 #agent = get_function_agent(llm=llm)
-
 agent = get_react_agent(Settings)
+
 #agent = None
 
 mlflow_handler = MLflowLogs(MLFLOW_LOGS_FOLDER)

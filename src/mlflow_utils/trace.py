@@ -2,6 +2,25 @@ import os
 import json
 from datetime import datetime
 
+from src.mlflow_utils.trace_analyzer import TraceAnalyzer
+
+def list_of_dicts_to_string(data):
+    """
+    Convert a list of dictionaries to a clean, readable string.
+    """
+    if not isinstance(data, list):
+        return "Invalid input: Expected a list."
+    
+    output_lines = []
+    for idx, item in enumerate(data, start=1):
+        if isinstance(item, dict):
+            lines = [f"{key}: {value}" for key, value in item.items()]
+            output_lines.append(f"[{idx}] " + ", ".join(lines))
+        else:
+            output_lines.append(f"[{idx}] {str(item)}")
+
+    return "\n".join(output_lines)
+
 class Trace:
     def __init__(self, trace_folder, experiment_id):
         self.trace_folder = trace_folder
@@ -16,6 +35,20 @@ class Trace:
                 return json.load(f)
         return {}
 
+    def get_spans_summary(self):
+        analyzer = TraceAnalyzer(self.data)
+        # Get flat summary for listing
+        flat_summary = analyzer.get_flat_summary()
+
+        # Get hierarchy summary for nested display
+        hierarchy = analyzer.get_hierarchy_summary()
+
+        # Get details for a specific span
+        details = analyzer.get_span_details("desired_span_id")
+
+        #return dict(flat_summary=flat_summary, hierarchy=hierarchy, details=details)
+        return [f"```json\n{flat_summary}```"]
+    
     @property
     def metadata(self):
         spans = self.data.get("spans", [])

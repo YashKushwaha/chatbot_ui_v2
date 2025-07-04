@@ -24,3 +24,16 @@ def list_traces(request: Request, experiment_id:str):
     sorted_traces = sorted(traces, key=lambda x: x["start_time_unix_nano"], reverse=True)
     return JSONResponse({'traces': sorted_traces})
 
+@router.get("/mlflow/list-trace-summary", response_class=JSONResponse)
+def list_traces(request: Request, experiment_id:str, trace_id:str):
+    mlflow_handler = request.app.state.mlflow_handler
+    logs_dir = mlflow_handler.logs_dir
+    experiment = Experiment(os.path.join(logs_dir, experiment_id ))
+    relevant_traces = [i for i in experiment.load_traces() if i.metadata.get('trace_id') == trace_id]
+    if len(relevant_traces) > 0:
+        trace = relevant_traces[0]
+        span_summary = trace.get_spans_summary()
+    else:
+        span_summary=[]
+
+    return JSONResponse({'span_summary': span_summary})

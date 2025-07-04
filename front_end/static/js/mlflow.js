@@ -14,46 +14,14 @@ async function fetchTraces(experiment_id) {
     return data.traces || [];
 }
 
-async function fetchNumRecords(db, collection) {
-    const response = await fetch(`/mongo/num-records-in-collection?db=${encodeURIComponent(db)}&collection=${encodeURIComponent(collection)}`);
-    if (!response.ok) throw new Error('Failed to fetch number of records');
+async function fetchTraceSummary(experiment_id, trace_id) {
+    const response = await fetch(`/mlflow/list-trace-summary?experiment_id=${encodeURIComponent(experiment_id)}&trace_id=${encodeURIComponent(trace_id)}`);
+    if (!response.ok) throw new Error('Failed to fetch trace summary');
     const data = await response.json();
-    return data.num_records || 0;
+    return data.span_summary || [];
 }
 
-async function fetchFirstNRecords(db, collection) {
-    const response = await fetch(`/mongo/first-n-records-in-collection?db=${encodeURIComponent(db)}&collection=${encodeURIComponent(collection)}`);
-    if (!response.ok) throw new Error('Failed to fetch number of records');
-    const data = await response.json();
-    return data.records || [];
-}
 
-async function fetchValueCounts(db, collection, key) {
-    const response = await fetch(`/mongo/show-value-counts?db=${encodeURIComponent(db)}&collection=${encodeURIComponent(collection)}&key=${encodeURIComponent(key)}`);
-    if (!response.ok) throw new Error('Failed to fetch number of records');
-    const data = await response.json();
-    
-    return data.counts || [];
-}
-
-async function queryRecords(db, collection, filter_criteria) {
-    const response = await fetch(`/mongo/query-records`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            db: db,
-            collection: collection,
-            filter_criteria: filter_criteria
-        })
-    });
-
-    if (!response.ok) throw new Error('Failed to fetch records');
-
-    const data = await response.json();
-    return data.records || [];
-}
 
 
 // ====================== UI RENDER FUNCTIONS ======================
@@ -87,27 +55,18 @@ function showCollections(container, dbName, collections) {
     });
 }
 
-function display_records(recordContentDiv, records){
-        recordContentDiv.innerHTML = '';
-        records.forEach(record => {
-            const pre = document.createElement('pre');
-            const code = document.createElement('code');
-            code.classList.add('json');  // Apply JSON highlighting
-            // Generate pretty JSON without extra escaping for quotes
-            const formattedJson = JSON.stringify(record, null, 2);
+function showSpanSummary(container, experiment_id, trace_id, summary_list) {
+    container.innerHTML = "";
+    
+    summary_list.forEach(colName => {
+        div = document.createElement('div');
+        console.log('ColNam => ', colName);
+        const htmlContent = marked.parse(colName);
+        div.innerHTML = htmlContent;
+        container.appendChild(div);
 
-            // Set as textContent (so it won't double-escape) and rely on highlight.js
-            code.textContent = formattedJson;
-            pre.appendChild(code);
-            recordContentDiv.appendChild(pre);
-            hljs.highlightElement(code);  // Apply highlighting
-            });
-
-        if (records.length === 0) {
-            recordContentDiv.textContent = 'No records found.';
-            }
-        }
-
+    });
+}
 
 // ====================== EVENT HANDLERS ======================
 
@@ -131,50 +90,19 @@ function handleDBClick(e) {
 function handleCollectionClick(e) {
     if (!e.target.classList.contains('list-item')) return;
 
-    const dbName = e.target.dataset.dbName;
-    const colName = e.target.dataset.colName;
+    toggleActiveState(e.target, '.list-item');
 
-    window.selectionState.colName = colName
+    const experiment_id = e.target.dataset.experiment_id;
+    const trace_id = e.target.dataset.trace_id;
+    const container = document.getElementById('record-value-counts')
+    fetchTraceSummary(experiment_id, trace_id)
+    .then(span_summary => {
+            showSpanSummary(container, experiment_id,trace_id, span_summary)
+        }
+    )
 
-    const recordCountDiv = document.getElementById('record-count');
-    const recordContentDiv = document.getElementById('record-content');
-    const recordValueCountsDiv = document.getElementById('record-value-counts');
-    // Optional: Indicate loading state
-    recordCountDiv.innerHTML = `<p>Loading count...</p>`;
-    recordContentDiv.innerHTML = `<p>Loading records...</p>`;
 
-    fetchNumRecords(dbName, colName)
-        .then(count => {
-            recordCountDiv.innerHTML = `<p>Total Records: ${count}</p>`;
-        })
-        .catch(err => {
-            console.error(err);
-            recordCountDiv.innerHTML = `<p style="color:red;">Failed to fetch record count</p>`;
-        });
-
-    fetchValueCounts(dbName, colName, "title")
-        .then(counts => {
-            recordValueCountsDiv.innerHTML = "";
-            counts.forEach(key_count => {
-                const to_show = key_count.join(' ')
-                const div = document.createElement('div');
-                div.dataset.key = key_count[0]
-                div.dataset.num_records = key_count[1]
-                div.classList.add('list-item');
-                div.innerHTML = `${to_show}`;
-                recordValueCountsDiv.appendChild(div);
-                }) ;
-        });
-
-    fetchFirstNRecords(dbName, colName)
-        .then(records => display_records(recordContentDiv, records))
-        .catch(err => {
-            console.error(err);
-            recordContentDiv.innerHTML = `<p style="color:red;">Failed to fetch records</p>`;
-        });
-
-    toggleActiveState(e.target, '.collection-button');
-}
+ }
 
 function toggleActiveState(target, selector) {
     const allButtons = document.querySelectorAll(selector);
@@ -182,16 +110,7 @@ function toggleActiveState(target, selector) {
     target.classList.add('active');
 }
 
-function handleValueCountClick(e){
-    if (e.target.classList.contains('list-item')){
-        const recordValueCountsDiv = document.getElementById('record-content');
-        const key = e.target.dataset.key;
-        window.selectionState.field = key
-        queryRecords(db = window.selectionState.dbName, collection = window.selectionState.colName,
-            filter_criteria = {"title": key})
-            .then(records => display_records(recordValueCountsDiv, records))
-    }
-} 
+
 // ====================== INITIALIZATION ======================
 
 window.selectionState = {
@@ -213,5 +132,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach event listeners
     dbListContainer.addEventListener('click', handleDBClick);
     collectionListContainer.addEventListener('click', handleCollectionClick);
-    recordValueCountsDiv.addEventListener('click', handleValueCountClick);
+
 });
